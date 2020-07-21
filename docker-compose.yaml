@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  main-db:
+    image: mysql
+    restart: always
+    container_name: main-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: asdfqwertqwert
+      MYSQL_DATABASE: abra
+      MYSQL_USER: app
+      MYSQL_PASSWORD: xzcbzxcgsdfgqwer
+    volumes:
+      - db_volume:/var/lib/mysql
+
+  redis:
+    image: "redis:alpine"
+    command: redis-server --requirepass sOmE_sEcUrE_pAsS
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+  php-fpm:
+    build:
+      context: ./docker/php-fpm
+    depends_on:
+      - main-db
+    environment:
+      - DATABASE_URL=mysql://app:xzcbzxcgsdfgqwer@main-db:3306/abra?serverVersion=8.0
+      - XDEBUG_CONFIG=remote_host=172.17.0.1 remote_enable=1 remote_autostart=off remote_port=9008
+    volumes:
+      - .:/var/www
+      - ./docker/php-fpm/php.ini:/usr/local/etc/php/conf.d/php.ini
+
+  nginx:
+    build:
+      context: ./docker/nginx
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+      - ./docker/logs:/var/log
+    depends_on:
+      - php-fpm
+    ports:
+      - "80:80"
+      - "443:443"
+
+volumes:
+  db_volume:
