@@ -4,7 +4,9 @@
     "type": "project",
     "require": {
         "php": "7.4.3.*",
-      "ext-json": "*"
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "ext-redis": "*"
     },
     "autoload": {
         "psr-4": {

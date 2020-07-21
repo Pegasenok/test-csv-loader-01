@@ -29,7 +29,8 @@ services:
     depends_on:
       - main-db
     environment:
-      - DATABASE_URL=mysql://app:xzcbzxcgsdfgqwer@main-db:3306/abra?serverVersion=8.0
+      - DATABASE_URL=mysql:dbname=abra;host=main-db;user=app;password=xzcbzxcgsdfgqwer
+      - REDIS_PASS=sOmE_sEcUrE_pAsS
       - XDEBUG_CONFIG=remote_host=172.17.0.1 remote_enable=1 remote_autostart=off remote_port=9008
     volumes:
       - .:/var/www

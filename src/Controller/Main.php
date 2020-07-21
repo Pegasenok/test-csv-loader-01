@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Command\DummyCommandDeployer;
+use App\Command\RedisCommandDeployer;
 use App\Dto\CsvFileRequesetDto;
 use App\Form\FormBuilder;
 use App\Model\UploadCsvFilesModel;
@@ -29,7 +30,12 @@ class Main
     public function upload()
     {
         $dto = new CsvFileRequesetDto($_FILES);
-        $model = new UploadCsvFilesModel(new DummyCommandDeployer());
+
+        $redis = new \Redis();
+        $redis->connect('redis');
+        $redis->auth($_ENV['REDIS_PASS']);
+
+        $model = new UploadCsvFilesModel(new RedisCommandDeployer($redis));
         return $model->upload($dto);
     }
 }

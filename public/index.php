@@ -24,7 +24,9 @@ $controller = $router->findController();
 $response = call_user_func($controller);
 
 if ($response instanceof JsonSerializable) {
-    header('Content-Type: application/json');
+    if (ob_get_length() == 0) {
+        header('Content-Type: application/json');
+    }
     echo json_encode($response);
 } else {
     echo $response;
