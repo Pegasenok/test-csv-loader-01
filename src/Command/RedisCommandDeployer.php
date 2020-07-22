@@ -37,4 +37,12 @@ class RedisCommandDeployer implements CommandDeployerInterface
     {
         // TODO: Implement getOneCommand() method.
     }
+
+    /**
+     * @return string
+     */
+    public function getQueueName(): string
+    {
+        return $this->queueName;
+    }
 }

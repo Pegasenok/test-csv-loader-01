@@ -18,4 +18,9 @@ interface CommandDeployerInterface
      * @throws EmptyCommandPoolException
      */
     public function getOneCommand(): CommandInterface;
+
+    /**
+     * @return string
+     */
+    public function getQueueName(): string;
 }

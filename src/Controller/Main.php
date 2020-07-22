@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Command\DummyCommandDeployer;
 use App\Command\RedisCommandDeployer;
 use App\Dto\CsvFileRequesetDto;
 use App\Form\FormBuilder;
@@ -31,6 +30,7 @@ class Main
     {
         $dto = new CsvFileRequesetDto($_FILES);
 
+        // todo inline redis initialization
         $redis = new \Redis();
         $redis->connect('redis');
         $redis->auth($_ENV['REDIS_PASS']);
