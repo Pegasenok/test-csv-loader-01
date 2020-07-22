@@ -26,4 +26,8 @@ class DummyCommandDeployer implements CommandDeployerInterface
         throw new EmptyCommandPoolException();
     }
 
+    public function getQueueName(): string
+    {
+        return 'dummy';
+    }
 }

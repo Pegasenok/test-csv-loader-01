@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Command;
+namespace Command;
 
+use App\Command\RedisCommandDeployer;
+use App\Command\UploadCsvCommand;
 use PHPUnit\Framework\TestCase;
 
 class RedisCommandDeployerTest extends TestCase

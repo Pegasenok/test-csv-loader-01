@@ -4,53 +4,46 @@
 namespace App\Model;
 
 
-use App\Repository\UserRepository;
-use App\Validation\ValidationException;
+use App\Builder\UserBuilder;
+use App\Dto\UserCsvHolder;
 
 class ParseCsvFileModel
 {
+    use ErrorBagTrait;
     const EXPECTED_FIELD_COUNT = 5;
     private array $errors = [];
 
-    public function parseFile(\SplFileObject $file)
+    private UserBuilder $userBuilder;
+
+    /**
+     * ParseCsvFileModel constructor.
+     * @param UserBuilder $userBuilder
+     */
+    public function __construct(UserBuilder $userBuilder)
+    {
+        $this->userBuilder = $userBuilder;
+    }
+
+    /**
+     * @param \SplFileObject $file
+     * @return \Generator|UserCsvHolder[]
+     */
+    public function parseFile(\SplFileObject $file): \Generator
     {
         while (!$file->eof()) {
-            // todo create and validate User entity
             if (($csvArray = $file->fgetcsv()) && !(count($csvArray) == self::EXPECTED_FIELD_COUNT)) {
+                $this->addError(sprintf("broken line %s", $file->key()));
                 continue;
             }
 
             try {
-                $user = UserRepository::generateUserFromArray($csvArray);
-            } catch (ValidationException $e) {
-                $this->addError('Validation not passed.');
-                continue;
+                $user = $this->userBuilder->generateUserFromArray($csvArray);
             } catch (\TypeError $e) {
-                $this->addError($e->getMessage());
+                $this->addError(sprintf($e->getMessage()."in line %s", $file->key()));
                 continue;
             }
 
-            yield $user;
+            yield new UserCsvHolder($user, $file->key());
         }
-    }
-
-    protected function addError($message)
-    {
-        $this->errors[] = $message;
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasErrors() {
-        return !empty($this->errors);
-    }
-
-    /**
-     * @return array
-     */
-    public function getErrors()
-    {
-        return $this->errors;
     }
 }
