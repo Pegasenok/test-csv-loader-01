@@ -10,4 +10,6 @@ interface CommandInterface extends \JsonSerializable
     public function getCommandId(): CommandId;
     public function getName(): string;
     public function getPayload(): array;
+
+    public function execute(): bool;
 }

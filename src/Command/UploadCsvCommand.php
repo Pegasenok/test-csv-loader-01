@@ -15,26 +15,29 @@ class UploadCsvCommand implements CommandInterface
      * @var CommandId
      */
     private CommandId $id;
+    private UserLoadingModel $executionModel;
 
-    public static function stuff(array $commandArray): self
+    /**
+     * UploadCsvCommand constructor.
+     * @param UserLoadingModel|null $executionModel // null in case we use this class as a message
+     */
+    public function __construct(?UserLoadingModel $executionModel = null)
     {
-        $command = new UploadCsvCommand();
-        $command->id = new CommandId($commandArray['id']);
-        $command->payload = $commandArray['payload'];
-        return $command;
+        if ($executionModel) {
+            $this->executionModel = $executionModel;
+        }
     }
 
     /**
-     * @param UserLoadingModel $executionModel
      * @return bool
      */
-    public function execute(UserLoadingModel $executionModel): bool
+    public function execute(): bool
     {
         foreach ($this->payload['files'] as $name => $path) {
             $file = new \SplFileObject($path);
-            $executionModel->uploadFile($file);
-            if (count($executionModel->getErrors())) {
-                var_dump($executionModel->getErrors());
+            $this->executionModel->uploadFile($file);
+            if (count($this->executionModel->getErrors())) {
+                var_dump($this->executionModel->getErrors());
             }
             unlink($file->getRealPath());
         }
@@ -47,6 +50,14 @@ class UploadCsvCommand implements CommandInterface
     public function setFiles(array $files)
     {
         $this->payload = ['files' => $files];
+    }
+
+    /**
+     * @param array $payload
+     */
+    public function setPayload(array $payload): void
+    {
+        $this->payload = $payload;
     }
 
     /**

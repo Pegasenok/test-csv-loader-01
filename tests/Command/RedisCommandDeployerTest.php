@@ -2,6 +2,7 @@
 
 namespace Command;
 
+use App\Command\CommandRegistry;
 use App\Command\RedisCommandDeployer;
 use App\Command\UploadCsvCommand;
 use PHPUnit\Framework\TestCase;
@@ -31,9 +32,14 @@ class RedisCommandDeployerTest extends TestCase
     public function testDeployCommand()
     {
         $deployer = new RedisCommandDeployer($this->redis);
-        $command = new UploadCsvCommand();
+        $command = (new CommandRegistry())->getCommandFromArray(
+            [
+                'id' => 'testId',
+                'name' => UploadCsvCommand::UPLOAD_CSV_COMMAND_NAME,
+                'payload' => ['files' => [self::TEST_FILE_NAME => self::TEST_FILE_PATH]]
+            ]
+        );
         file_put_contents(self::TEST_FILE_PATH, 'a,b,c');
-        $command->setFiles([self::TEST_FILE_NAME => self::TEST_FILE_PATH]);
         $deployer->deployCommand($command);
 
         $commands = $this->redis->lRange($deployer->getQueueName(), 0, -1);

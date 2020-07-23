@@ -4,32 +4,27 @@
 namespace App\Worker;
 
 
-use App\Builder\UserBuilder;
+use App\Command\CommandRegistry;
 use App\Command\RedisCommandDeployer;
-use App\Command\UploadCsvCommand;
-use App\Database\DatabaseStorage;
-use App\Model\UserLoadingModel;
-use App\Parser\CsvFileParser;
-use App\Repository\UserRepository;
-use App\Validation\UserValidation;
 use Redis;
 
 class RedisCommandListener
 {
     const MICRO_SECONDS = 500000;
-    /**
-     * @var Redis
-     */
+
     private Redis $redis;
     private bool $working;
+    private CommandRegistry $registry;
 
     /**
      * CommandListener constructor.
      * @param Redis $redis
+     * @param CommandRegistry $registry
      */
-    public function __construct(Redis $redis)
+    public function __construct(Redis $redis, CommandRegistry $registry)
     {
         $this->redis = $redis;
+        $this->registry = $registry;
     }
 
     /**
@@ -42,24 +37,19 @@ class RedisCommandListener
         while ($this->working) {
             if ($commandJson = $this->redis->rpoplpush(RedisCommandDeployer::QUEUE_NAME, $this->getWorkerProcessQueueName())) {
                 try {
-                    $commandArray = json_decode($commandJson, true);
-                    if ($commandArray['name'] == UploadCsvCommand::UPLOAD_CSV_COMMAND_NAME) {
-                        $model = new UserLoadingModel(
-                            new UserRepository(new DatabaseStorage($_ENV['DATABASE_URL'])),
-                            new CsvFileParser(new UserBuilder(new UserValidation()))
-                        );
-                        $command = UploadCsvCommand::stuff($commandArray);
-                        $commandId = $command->getCommandId()->getId();
-                        if ($this->redis->getSet($commandId, RedisCommandDeployer::PROGRESS_STATUS) == RedisCommandDeployer::INITIAL_STATUS) {
-                            if ($command->execute($model)) {
-                                $this->redis->setex($commandId, RedisCommandDeployer::KEY_TTL, RedisCommandDeployer::COMPLETE_STATUS);
-                            }
-                            echo "command $commandId completed \n";
-                        } else {
-                            echo "command $commandId already in work";
+                    $command = $this->registry->getCommandFromArray(
+                        json_decode($commandJson, true)
+                    );
+                    $commandId = $command->getCommandId()->getId();
+                    if ($this->redis->getSet($commandId, RedisCommandDeployer::PROGRESS_STATUS) == RedisCommandDeployer::INITIAL_STATUS) {
+                        if ($command->execute()) {
+                            $this->redis->setex($commandId, RedisCommandDeployer::KEY_TTL, RedisCommandDeployer::COMPLETE_STATUS);
                         }
-                        $this->redis->rPop($this->getWorkerProcessQueueName());
+                        echo "command $commandId completed \n";
+                    } else {
+                        echo "command $commandId already in work";
                     }
+                    $this->redis->rPop($this->getWorkerProcessQueueName());
                 } catch (\Exception $e) {
                     echo $e->getMessage() . "\n";
                 }
