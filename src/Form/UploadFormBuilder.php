@@ -4,7 +4,7 @@
 namespace App\Form;
 
 
-class FormBuilder
+class UploadFormBuilder
 {
     /**
      * @var Input[]

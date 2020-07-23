@@ -4,38 +4,38 @@
 namespace App\Dto;
 
 
-use App\Entity\User;
+use App\Entity\EntityInterface;
 
-class UserCsvHolder
+class EntityHolder
 {
-    private User $user;
+    private EntityInterface $entity;
     private int $rowId;
 
     /**
      * UserCsvHolder constructor.
-     * @param User $user
+     * @param EntityInterface $user
      * @param int $rowId
      */
-    public function __construct(User $user, int $rowId)
+    public function __construct(EntityInterface $user, int $rowId)
     {
-        $this->user = $user;
+        $this->entity = $user;
         $this->rowId = $rowId;
     }
 
     /**
-     * @return User
+     * @return EntityInterface
      */
-    public function getUser(): User
+    public function getEntity(): EntityInterface
     {
-        return $this->user;
+        return $this->entity;
     }
 
     /**
-     * @param User $user
+     * @param EntityInterface $entity
      */
-    public function setUser(User $user): void
+    public function setEntity(EntityInterface $entity): void
     {
-        $this->user = $user;
+        $this->entity = $entity;
     }
 
     /**

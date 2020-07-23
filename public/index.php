@@ -1,6 +1,6 @@
 <?php
 
-use App\Controller\Main;
+use App\Controller\MainController;
 use App\Router\Router;
 
 require dirname(__DIR__).'/vendor/autoload.php';
@@ -12,14 +12,14 @@ set_exception_handler(function (Throwable $exception) {
     echo 'Error ' . $exception->getMessage();
 });
 
-$main = new Main();
-$controllers[Main::class] = $main;
+$main = new MainController();
+$controllers[MainController::class] = $main;
 
 $router = new Router($controllers);
 $controller = $router->findController();
 
 /**
- * @see Main
+ * @see MainController
  */
 $response = call_user_func($controller);
 

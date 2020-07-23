@@ -3,7 +3,7 @@
 namespace Model;
 
 use App\Builder\UserBuilder;
-use App\Model\ParseCsvFileModel;
+use App\Parser\CsvFileParser;
 use App\Validation\UserValidation;
 use PHPUnit\Framework\TestCase;
 
@@ -21,8 +21,8 @@ class ParseCsvFileModelTest extends TestCase
 2, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
 CSV
 );
-        $model = new ParseCsvFileModel(new UserBuilder(new UserValidation()));
-        foreach ($model->parseFile(new \SplFileObject(self::TEST_FILE_PATH)) as $item) {
+        $model = new CsvFileParser(new UserBuilder(new UserValidation()));
+        foreach ($model->streamParseFile(new \SplFileObject(self::TEST_FILE_PATH)) as $item) {
             $this->assertIsObject($item);
         }
         $this->assertCount(2, $model->getErrors());

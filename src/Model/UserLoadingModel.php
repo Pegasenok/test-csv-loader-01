@@ -4,25 +4,29 @@
 namespace App\Model;
 
 
+use App\Entity\User;
 use App\Exception\UserBatchInsertException;
+use App\Parser\CsvFileParser;
 use App\Repository\UserRepository;
+use App\Util\ErrorBagTrait;
 
 class UserLoadingModel
 {
     use ErrorBagTrait;
+
     const USER_INSERT_BATCH_SIZE = 50;
     private UserRepository $userRepository;
-    private ParseCsvFileModel $parseModel;
+    private CsvFileParser $parser;
 
     /**
      * UserLoadingModel constructor.
      * @param UserRepository $repository
-     * @param ParseCsvFileModel $parseCsvFileModel
+     * @param CsvFileParser $csvFileParser
      */
-    public function __construct(UserRepository $repository, ParseCsvFileModel $parseCsvFileModel)
+    public function __construct(UserRepository $repository, CsvFileParser $csvFileParser)
     {
         $this->userRepository = $repository;
-        $this->parseModel = $parseCsvFileModel;
+        $this->parser = $csvFileParser;
     }
 
     /**
@@ -32,11 +36,15 @@ class UserLoadingModel
     {
         $this->userRepository->openUserInsertBatch();
         $i = 0;
-        foreach ($this->parseModel->parseFile($file) as $userCsvHolder) {
+        foreach ($this->parser->streamParseFile($file) as $entityHolder) {
             try {
-                $this->userRepository->addToBatch($userCsvHolder->getUser());
+                $user = $entityHolder->getEntity();
+                if (!$user instanceof User) {
+                    throw new UserBatchInsertException('Bad user.');
+                }
+                $this->userRepository->addToBatch($user);
             } catch (UserBatchInsertException $e) {
-                $this->addError("Line {$userCsvHolder->getRowId()} - {$e->getMessage()}");
+                $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
 
             if (++$i > self::USER_INSERT_BATCH_SIZE) {

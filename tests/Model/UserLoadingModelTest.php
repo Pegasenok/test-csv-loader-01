@@ -4,7 +4,7 @@ namespace Model;
 
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
-use App\Model\ParseCsvFileModel;
+use App\Parser\CsvFileParser;
 use App\Model\UserLoadingModel;
 use App\Repository\UserRepository;
 use App\Validation\UserValidation;
@@ -13,6 +13,22 @@ use PHPUnit\Framework\TestCase;
 class UserLoadingModelTest extends TestCase
 {
     const TEST_FILE_PATH = '/tmp/test_03.csv';
+    /**
+     * @var DatabaseStorage
+     */
+    private DatabaseStorage $storage;
+
+    public function setUp(): void
+    {
+        $this->storage = new DatabaseStorage($_ENV['DATABASE_URL']); // todo need separate database for tests
+        /** @noinspection SqlWithoutWhere */
+        $this->storage->getConnection()->exec('delete from users');
+    }
+
+    public function tearDown(): void
+    {
+
+    }
 
     public function testUploadFile()
     {
@@ -27,8 +43,8 @@ class UserLoadingModelTest extends TestCase
 CSV
         );
         $model = new UserLoadingModel(
-            new UserRepository(new DatabaseStorage($_ENV['DATABASE_URL'])),
-            new ParseCsvFileModel(new UserBuilder(new UserValidation()))
+            new UserRepository($this->storage),
+            new CsvFileParser(new UserBuilder(new UserValidation()))
         );
         $model->uploadFile(new \SplFileObject(self::TEST_FILE_PATH));
         $this->assertTrue(true);

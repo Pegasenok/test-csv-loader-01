@@ -10,7 +10,7 @@ use App\Command\UploadCsvCommand;
 use App\Dto\CsvFileRequesetDto;
 use App\Dto\CsvFileResponseDto;
 
-class UploadCsvFilesModel
+class UploadActionModel
 {
     private CommandDeployerInterface $commandDeployer;
 

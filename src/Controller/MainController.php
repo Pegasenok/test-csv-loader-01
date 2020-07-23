@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Command\RedisCommandDeployer;
 use App\Dto\CsvFileRequesetDto;
-use App\Form\FormBuilder;
-use App\Model\UploadCsvFilesModel;
-use App\Model\UploadCsvFormModel;
+use App\Form\UploadFormBuilder;
+use App\Model\UploadActionModel;
+use App\Model\UploadFormModel;
 
-class Main
+class MainController
 {
     const UPLOAD_URL = 'upload';
 
@@ -16,9 +16,9 @@ class Main
      * @return string
      * @throws \Exception
      */
-    public function hello()
+    public function index()
     {
-        $model = new UploadCsvFormModel(new FormBuilder());
+        $model = new UploadFormModel(new UploadFormBuilder());
         return $model->getUploadFormHtml();
     }
 
@@ -35,7 +35,7 @@ class Main
         $redis->connect('redis');
         $redis->auth($_ENV['REDIS_PASS']);
 
-        $model = new UploadCsvFilesModel(new RedisCommandDeployer($redis));
+        $model = new UploadActionModel(new RedisCommandDeployer($redis));
         return $model->upload($dto);
     }
 }

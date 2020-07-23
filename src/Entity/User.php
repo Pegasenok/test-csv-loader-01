@@ -4,7 +4,7 @@
 namespace App\Entity;
 
 
-class User
+class User implements EntityInterface
 {
     private int $id;
     private string $fio;

@@ -4,14 +4,14 @@
 namespace App\Router;
 
 
-use App\Controller\Main;
+use App\Controller\MainController;
 
 class Router
 {
     private array $controllers;
     private array $routes = [
-        '' => [Main::class, 'hello'], /** @see Main::hello() */
-        'upload' => [Main::class, 'upload'], /** @see Main::upload() */
+        '' => [MainController::class, 'index'], /** @see MainController::index() */
+        'upload' => [MainController::class, 'upload'], /** @see MainController::upload() */
     ];
 
     /**

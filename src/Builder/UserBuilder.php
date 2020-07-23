@@ -7,8 +7,10 @@ namespace App\Builder;
 use App\Entity\User;
 use App\Validation\UserValidation;
 
-class UserBuilder
+class UserBuilder implements EntityBuilderInterface
 {
+    const EXPECTED_FIELD_COUNT = 5;
+
     /**
      * @var UserValidation
      */
@@ -27,7 +29,7 @@ class UserBuilder
      * @param $array
      * @return User
      */
-    public function generateUserFromArray($array): User
+    public function generateEntityFromSimpleArray($array): User
     {
         $user = new User();
         $user->setId($this->validator->validateId($array[0]));
@@ -37,5 +39,10 @@ class UserBuilder
         $user->setSum($this->validator->validateSum($array[4]));
 
         return $user;
+    }
+
+    public function getExpectedFieldCount(): int
+    {
+        return self::EXPECTED_FIELD_COUNT;
     }
 }
