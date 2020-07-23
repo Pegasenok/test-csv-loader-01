@@ -12,8 +12,10 @@ RUN apk --no-cache add pcre-dev ${PHPIZE_DEPS} \
 && docker-php-ext-enable redis \
 && apk del pcre-dev ${PHPIZE_DEPS}
 
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+
 WORKDIR /var/www
 
-CMD php bin/job.php
+CMD composer dump-autoload; php bin/job.php
 
 EXPOSE 9000

@@ -16,6 +16,9 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-CMD composer install ; php-fpm
+COPY composer.json /var/www/composer.json
+RUN composer install
+
+CMD composer install; composer dump-autoload; php-fpm
 
 EXPOSE 9000
