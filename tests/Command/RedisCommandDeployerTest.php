@@ -33,7 +33,7 @@ class RedisCommandDeployerTest extends TestCase
         $deployer = new RedisCommandDeployer($this->redis);
         $command = new UploadCsvCommand();
         file_put_contents(self::TEST_FILE_PATH, 'a,b,c');
-        $command->setFiles([self::TEST_FILE_NAME => new \SplFileObject(self::TEST_FILE_PATH)]);
+        $command->setFiles([self::TEST_FILE_NAME => self::TEST_FILE_PATH]);
         $deployer->deployCommand($command);
 
         $commands = $this->redis->lRange($deployer->getQueueName(), 0, -1);

@@ -3,11 +3,12 @@
     "description": "csv loader",
     "type": "project",
     "require": {
-        "php": "7.4.3.*",
+        "php": "~7.4",
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-redis": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "ext-pcntl": "*"
     },
     "autoload": {
         "psr-4": {

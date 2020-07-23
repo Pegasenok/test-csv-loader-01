@@ -5,11 +5,15 @@ namespace App\Builder;
 
 
 use App\Entity\User;
+use App\Exception\UserFieldSetException;
 use App\Validation\UserValidation;
 
 class UserBuilder implements EntityBuilderInterface
 {
     const EXPECTED_FIELD_COUNT = 5;
+    const USER_FIELD_LIST = [
+        'id', 'fio', 'email', 'currency', 'sum'
+    ];
 
     /**
      * @var UserValidation
@@ -26,18 +30,23 @@ class UserBuilder implements EntityBuilderInterface
     }
 
     /**
+     * @todo magic
      * @param $array
      * @return User
+     * @throws UserFieldSetException
      */
     public function generateEntityFromSimpleArray($array): User
     {
         $user = new User();
-        $user->setId($this->validator->validateId($array[0]));
-        $user->setFio($this->validator->validateFio($array[1]));
-        $user->setEmail($this->validator->validateEmail($array[2]));
-        $user->setCurrency($this->validator->validateCurrency($array[3]));
-        $user->setSum($this->validator->validateSum($array[4]));
-
+        foreach (self::USER_FIELD_LIST as $fieldId => $field) {
+            $setMethod = 'set' . ucfirst($field);
+            $validateMethod = 'validate' . ucfirst($field);
+            $value = $this->validator->{$validateMethod}($array[$fieldId]);
+            if ($value === false) {
+                throw new UserFieldSetException("Bad $field");
+            }
+            $user->{$setMethod}($value);
+        }
         return $user;
     }
 

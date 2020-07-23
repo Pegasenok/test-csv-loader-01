@@ -6,6 +6,7 @@ namespace App\Parser;
 
 use App\Builder\EntityBuilderInterface;
 use App\Dto\EntityHolder;
+use App\Exception\UserFieldSetException;
 use App\Util\ErrorBagTrait;
 
 class CsvFileParser
@@ -38,8 +39,8 @@ class CsvFileParser
 
             try {
                 $entity = $this->entityBuilder->generateEntityFromSimpleArray($csvArray);
-            } catch (\TypeError $e) {
-                $this->addError(sprintf($e->getMessage()."in line %s", $file->key()));
+            } catch (\TypeError | UserFieldSetException $e) {
+                $this->addError(sprintf("%s in line %s", $e->getMessage(), $file->key()));
                 continue;
             }
 

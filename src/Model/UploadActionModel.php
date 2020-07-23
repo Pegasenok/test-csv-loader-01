@@ -30,7 +30,14 @@ class UploadActionModel
     public function upload(CsvFileRequesetDto $requesetDto): CsvFileResponseDto
     {
         $command = new UploadCsvCommand();
-        $command->setFiles($requesetDto->getFiles());
+        $files = [];
+        foreach ($requesetDto->getFiles() as $key => $file) {
+            $destination = '/var/uploads/' . uniqid('file_');
+            move_uploaded_file($file->getRealPath(), $destination);
+            chmod($destination, 0777);
+            $files[$key] = $destination;
+        }
+        $command->setFiles($files);
         try {
             $commandId = $this->commandDeployer->deployCommand($command);
         } catch (CommandPoolException $e) {

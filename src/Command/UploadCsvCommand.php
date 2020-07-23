@@ -4,21 +4,49 @@
 namespace App\Command;
 
 
+use App\Model\UserLoadingModel;
+
 class UploadCsvCommand implements CommandInterface
 {
-    public string $name = 'uploadCsv';
+    CONST UPLOAD_CSV_COMMAND_NAME = 'uploadCsv';
     public array $payload;
+
     /**
      * @var CommandId
      */
     private CommandId $id;
 
+    public static function stuff(array $commandArray): self
+    {
+        $command = new UploadCsvCommand();
+        $command->id = new CommandId($commandArray['id']);
+        $command->payload = $commandArray['payload'];
+        return $command;
+    }
+
     /**
-     * @param \SplFileObject[] $files
+     * @param UserLoadingModel $executionModel
+     * @return bool
+     */
+    public function execute(UserLoadingModel $executionModel): bool
+    {
+        foreach ($this->payload['files'] as $name => $path) {
+            $file = new \SplFileObject($path);
+            $executionModel->uploadFile($file);
+            if (count($executionModel->getErrors())) {
+                var_dump($executionModel->getErrors());
+            }
+            unlink($file->getRealPath());
+        }
+        return true;
+    }
+
+    /**
+     * @param string[] $files
      */
     public function setFiles(array $files)
     {
-        $this->payload = ['files' => array_map(fn($file) => $file->getRealPath(), $files)];
+        $this->payload = ['files' => $files];
     }
 
     /**
@@ -26,7 +54,7 @@ class UploadCsvCommand implements CommandInterface
      */
     public function getName(): string
     {
-        return $this->name;
+        return self::UPLOAD_CSV_COMMAND_NAME;
     }
 
     public function getPayload(): array

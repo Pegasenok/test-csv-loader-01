@@ -6,8 +6,13 @@ namespace App\Command;
 
 class RedisCommandDeployer implements CommandDeployerInterface
 {
+    const QUEUE_NAME = 'q';
+    const INITIAL_STATUS = 0;
+    const PROGRESS_STATUS = 1;
+    const COMPLETE_STATUS = 2;
+    const KEY_TTL = 300;
+
     private \Redis $redis;
-    private string $queueName = 'q';
 
     /**
      * RedisCommandDeployer constructor.
@@ -24,8 +29,8 @@ class RedisCommandDeployer implements CommandDeployerInterface
         $command->setCommandId($commandId);
         $serializedPayload = json_encode($command);
         $this->redis->multi();
-        $this->redis->lPush($this->queueName, $serializedPayload);
-        $this->redis->set($commandId->getId(), 0);
+        $this->redis->lPush($this->getQueueName(), $serializedPayload);
+        $this->redis->set($commandId->getId(), self::INITIAL_STATUS);
         [$lPushResult, $setResult] = $this->redis->exec();
         if ($lPushResult === false) {
             throw new CommandPoolException('error deploying command');
@@ -43,6 +48,6 @@ class RedisCommandDeployer implements CommandDeployerInterface
      */
     public function getQueueName(): string
     {
-        return $this->queueName;
+        return self::QUEUE_NAME;
     }
 }

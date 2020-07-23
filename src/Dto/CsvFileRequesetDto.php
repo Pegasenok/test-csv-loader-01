@@ -27,7 +27,7 @@ class CsvFileRequesetDto
     }
 
     /**
-     * @return array
+     * @return array|\SplFileObject[]
      */
     public function getFiles(): array
     {

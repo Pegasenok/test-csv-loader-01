@@ -54,6 +54,7 @@ class UserLoadingModel
             }
         }
         $this->userRepository->commitBatch();
+        var_dump($this->parser->getErrors());
     }
 
 }

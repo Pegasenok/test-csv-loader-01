@@ -35,6 +35,24 @@ services:
       - PHP_IDE_CONFIG=serverName=localhost
     volumes:
       - .:/var/www
+      - ./files:/var/uploads
+      - ./docker/php-fpm/php.ini:/usr/local/etc/php/conf.d/php.ini
+
+  # todo review fpm and job separation
+  php-job:
+    build:
+      context: ./docker/php-job
+    depends_on:
+      - main-db
+      - php-fpm # composer install is done there, bad
+    environment:
+      - DATABASE_URL=mysql:dbname=abra;host=main-db;user=app;password=xzcbzxcgsdfgqwer
+      - REDIS_PASS=sOmE_sEcUrE_pAsS
+      - XDEBUG_CONFIG=remote_host=172.17.0.1 remote_enable=1 remote_autostart=off remote_port=9009
+      - PHP_IDE_CONFIG=serverName=localhost
+    volumes:
+      - .:/var/www
+      - ./files:/var/uploads
       - ./docker/php-fpm/php.ini:/usr/local/etc/php/conf.d/php.ini
 
   nginx:
