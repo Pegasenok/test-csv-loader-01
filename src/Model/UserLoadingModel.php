@@ -14,7 +14,7 @@ class UserLoadingModel
 {
     use ErrorBagTrait;
 
-    const USER_INSERT_BATCH_SIZE = 50;
+    const USER_INSERT_BATCH_SIZE = 10000;
     private UserRepository $userRepository;
     private CsvFileParser $parser;
 
@@ -47,7 +47,9 @@ class UserLoadingModel
                 $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
 
-            if (++$i > self::USER_INSERT_BATCH_SIZE) {
+            if (++$i >= self::USER_INSERT_BATCH_SIZE) {
+                echo "committing\n";
+                ob_flush();
                 $this->userRepository->commitBatch();
                 $this->userRepository->openUserInsertBatch();
                 $i = 0;

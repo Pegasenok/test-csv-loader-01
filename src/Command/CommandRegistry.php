@@ -13,7 +13,7 @@ use App\Validation\UserValidation;
 
 class CommandRegistry
 {
-    public function getCommandFromArray($array)
+    public function getCommandFromArray($array): CommandInterface
     {
         if ($array['name'] == UploadCsvCommand::UPLOAD_CSV_COMMAND_NAME) {
             $model = new UserLoadingModel(
