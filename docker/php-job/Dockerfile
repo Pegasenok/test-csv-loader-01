@@ -16,6 +16,6 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-CMD composer dump-autoload; bin/job
+CMD chmod 777 /var/uploads; composer dump-autoload; bin/job
 
 EXPOSE 9000

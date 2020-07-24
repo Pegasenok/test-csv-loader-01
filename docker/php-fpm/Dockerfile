@@ -19,6 +19,6 @@ WORKDIR /var/www
 COPY composer.json /var/www/composer.json
 RUN composer install
 
-CMD composer install; composer dump-autoload; php-fpm
+CMD chmod 777 /var/uploads; composer install; composer dump-autoload; bin/migration; php-fpm
 
 EXPOSE 9000

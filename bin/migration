@@ -6,12 +6,25 @@ use App\Migrations\Migration001;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
-$connection = new DatabaseStorage($_ENV['DATABASE_URL']);
+$wait = 10;
+$connection = null;
+while ($wait && !$connection) {
+    try {
+        $connection = new DatabaseStorage($_ENV['DATABASE_URL']);
+    } catch (PDOException $exception) {
+        echo "Waiting for DB \n";
+        $wait--;
+        sleep(2);
+    }
+}
+if (is_null($connection)) {
+    exit('Database not accessible!');
+}
 
 try {
     $migration = new Migration001($connection);
     $migration->up();
-    $message = "done";
+    $message = "Migration done";
     successMessage($message);
 } catch (Exception $e) {
     $message = $e->getMessage();

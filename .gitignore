@@ -1,4 +1,6 @@
 .idea
 /vendor/
-/docker/logs/
-/files/
+/docker/logs/nginx/*
+!/docker/logs/nginx/.gitkeep
+/files/*
+!/files/.gitkeep
