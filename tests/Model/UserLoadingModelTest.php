@@ -4,6 +4,7 @@ namespace Model;
 
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
+use App\Fixture\CsvFileFixture;
 use App\Parser\CsvFileParser;
 use App\Model\UserLoadingModel;
 use App\Repository\UserRepository;
@@ -28,6 +29,24 @@ class UserLoadingModelTest extends TestCase
     public function tearDown(): void
     {
 
+    }
+
+    /**
+     * @group benchmark
+     * @doesNotPerformAssertions
+     */
+    public function testUploadBigFile()
+    {
+        $generator = new CsvFileFixture();
+        $generator->generate(self::TEST_FILE_PATH, 20000);
+        $time = microtime(true);
+        $model = new UserLoadingModel(
+            new UserRepository($this->storage),
+            new CsvFileParser(new UserBuilder(new UserValidation()))
+        );
+        $model->uploadFile(new \SplFileObject(self::TEST_FILE_PATH));
+        $time = microtime(true) - $time;
+        echo "Time elapsed: $time";
     }
 
     public function testUploadFile()
