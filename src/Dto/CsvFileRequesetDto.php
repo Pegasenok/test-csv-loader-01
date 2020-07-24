@@ -15,6 +15,9 @@ class CsvFileRequesetDto
      */
     public function __construct($files)
     {
+        if (empty($files)) {
+            throw new \Exception('no file, try again', 400);
+        }
         foreach ($files as $file) {
             if (!$file['name']) {
                 throw new \Exception('no file, try again', 400);

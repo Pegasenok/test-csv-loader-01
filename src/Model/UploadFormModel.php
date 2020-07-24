@@ -31,4 +31,10 @@ class UploadFormModel
         $this->formBuilder->addInputFile(self::LOADING_INPUT_NAME, 'Csv file for upload: ');
         return "Hello. Please choose your csv file with the following fields: ID Пользователя,ФИО Пользователя,Email,Валюта,Сумма</br>" . $this->formBuilder->getHtml();
     }
+
+    public function getStatusFormHtml(string $waitId): string
+    {
+        $url = MainController::WAIT_STATUS_URL;
+        return "Check your status here: <a href='$url?waitId=$waitId'>link</a>";
+    }
 }

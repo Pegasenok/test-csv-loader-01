@@ -41,6 +41,7 @@ class RedisCommandListener
                         json_decode($commandJson, true)
                     );
                     $commandId = $command->getCommandId()->getId();
+                    echo "command $commandId started \n";
                     if ($this->redis->getSet($commandId, RedisCommandDeployer::PROGRESS_STATUS) == RedisCommandDeployer::INITIAL_STATUS) {
                         if ($command->execute()) {
                             $this->redis->setex($commandId, RedisCommandDeployer::KEY_TTL, RedisCommandDeployer::COMPLETE_STATUS);

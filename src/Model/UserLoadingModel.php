@@ -45,9 +45,9 @@ class UserLoadingModel
                 $this->userRepository->addToBatch($user);
 
                 if (++$i >= $this->batchSize) {
+                    $i = 0;
                     $this->userRepository->commitBatch();
                     $this->userRepository->openUserInsertBatch();
-                    $i = 0;
                 }
             } catch (UserBatchInsertException $e) {
                 $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
