@@ -14,9 +14,9 @@ class UserLoadingModel
 {
     use ErrorBagTrait;
 
-    const USER_INSERT_BATCH_SIZE = 10000;
     private UserRepository $userRepository;
     private CsvFileParser $parser;
+    private int $batchSize = 1000;
 
     /**
      * UserLoadingModel constructor.
@@ -43,20 +43,71 @@ class UserLoadingModel
                     throw new UserBatchInsertException('Bad user.');
                 }
                 $this->userRepository->addToBatch($user);
+
+                if (++$i >= $this->batchSize) {
+                    $this->userRepository->commitBatch();
+                    $this->userRepository->openUserInsertBatch();
+                    $i = 0;
+                }
             } catch (UserBatchInsertException $e) {
                 $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
+        }
+        try {
+            $this->userRepository->commitBatch();
+        } catch (UserBatchInsertException $e) {
+            $this->addError("Last line - {$e->getMessage()}");
+        }
+//        var_dump($this->parser->getErrors());
+    }
 
-            if (++$i >= self::USER_INSERT_BATCH_SIZE) {
-                echo "committing\n";
-                ob_flush();
-                $this->userRepository->commitBatch();
-                $this->userRepository->openUserInsertBatch();
-                $i = 0;
+    /**
+     * @todo strategy
+     * @param \SplFileObject $file
+     */
+    public function uploadFile2(\SplFileObject $file)
+    {
+        $this->userRepository->openUserInsertStatement();
+        $i = 0;
+        foreach ($this->parser->streamParseFile($file) as $entityHolder) {
+            try {
+                $user = $entityHolder->getEntity();
+                if (!$user instanceof User) {
+                    throw new UserBatchInsertException('Bad user.');
+                }
+                $this->userRepository->executeUserInsertStatement($user);
+
+                if (++$i >= $this->batchSize) {
+                    $this->userRepository->commit();
+                    $this->userRepository->openUserInsertStatement();
+                    $i = 0;
+                }
+            } catch (UserBatchInsertException $e) {
+                $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
         }
-        $this->userRepository->commitBatch();
-        var_dump($this->parser->getErrors());
+        try {
+            $this->userRepository->commit();
+        } catch (UserBatchInsertException $e) {
+            $this->addError("Last line - {$e->getMessage()}");
+        }
+//        var_dump($this->parser->getErrors());
+    }
+
+    /**
+     * @return int
+     */
+    public function getBatchSize(): int
+    {
+        return $this->batchSize;
+    }
+
+    /**
+     * @param int $batchSize
+     */
+    public function setBatchSize(int $batchSize): void
+    {
+        $this->batchSize = $batchSize;
     }
 
 }

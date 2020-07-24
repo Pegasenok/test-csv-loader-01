@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class UserLoadingModelTest extends TestCase
 {
-    const TEST_FILE_PATH = '/tmp/test_03.csv';
+    const TEST_FILE_PATH = '/var/uploads/test_03.csv';
     /**
      * @var DatabaseStorage
      */
@@ -34,19 +34,32 @@ class UserLoadingModelTest extends TestCase
     /**
      * @group benchmark
      * @doesNotPerformAssertions
+     * @testWith [1000, 10]
+     * [1000, 50]
+     * [10000, 100]
+     * [10000, 1000]
+     * [10000, 5000]
+     * [20000, 100]
+     * [20000, 1000]
+     * [20000, 5000]
+     * @param int $rows
+     * @param int $batch
      */
-    public function testUploadBigFile()
+    public function testUploadBigFile(int $rows, int $batch)
     {
+        $this->storage->getConnection()->exec('delete from users');
         $generator = new CsvFileFixture();
-        $generator->generate(self::TEST_FILE_PATH, 20000);
+        $generator->generate(self::TEST_FILE_PATH, $rows);
         $time = microtime(true);
         $model = new UserLoadingModel(
             new UserRepository($this->storage),
             new CsvFileParser(new UserBuilder(new UserValidation()))
         );
+        $model->setBatchSize($batch);
         $model->uploadFile(new \SplFileObject(self::TEST_FILE_PATH));
         $time = microtime(true) - $time;
-        echo "Time elapsed: $time";
+        unlink(realpath(self::TEST_FILE_PATH));
+        echo "$rows/$batch time elapsed: $time\n";
     }
 
     public function testUploadFile()

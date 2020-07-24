@@ -11,7 +11,7 @@ class CsvFileFixture
     public function generate(string $fileName, int $rowCount)
     {
         $file = fopen($fileName, 'w');
-        for ($i = 0; $i < $rowCount; $i++) {
+        for ($i = 1; $i <= $rowCount; $i++) {
             $id = $i + $this->getShift();
             $name = $this->getRandomString(rand(3,10));
             $email = $this->getRandomString(rand(1,7)) . '@' . $this->getRandomString(rand(4,5)) . '.com';

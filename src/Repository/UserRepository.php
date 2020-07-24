@@ -4,15 +4,19 @@
 namespace App\Repository;
 
 
+use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
 use App\Entity\User;
 use App\Exception\UserBatchInsertException;
-use PDOStatement;
 
 class UserRepository
 {
     private DatabaseStorage $storage;
-    private PDOStatement $batch;
+    private array $batch;
+    /**
+     * @var bool|\PDOStatement
+     */
+    private $insertBatchStatement;
 
     /**
      * UserRepository constructor.
@@ -25,29 +29,16 @@ class UserRepository
 
     public function openUserInsertBatch()
     {
+        $this->batch = [];
         $this->getConnection()->beginTransaction();
-        $this->batch = $this->getConnection()->prepare(<<<SQL
-insert into users (id, fio, email, currency, sum) values (?, ?, ?, ?, ?)
-SQL
-        );
     }
 
     /**
      * @param User $user
-     * @throws UserBatchInsertException
      */
     public function addToBatch(User $user)
     {
-        if (!$this->batch->execute([
-            $user->getId(),
-            $user->getFio(),
-            $user->getEmail(),
-            $user->getCurrency(),
-            $user->getSum()
-        ])) {
-            $error = $this->batch->errorInfo();
-            throw new UserBatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
-        };
+        $this->batch[] = $user;
     }
 
     /**
@@ -58,7 +49,61 @@ SQL
         return $this->storage->getConnection();
     }
 
+    /**
+     * @throws UserBatchInsertException
+     */
     public function commitBatch()
+    {
+        $insertScript = <<<SQL
+insert into users (id, fio, email, currency, sum) values 
+SQL
+        ;
+        for ($i = 0; $i < count($this->batch); $i++) {
+            $quoteMarks = implode(',', str_split(str_repeat('?', UserBuilder::EXPECTED_FIELD_COUNT)));
+            $insertScript .= '(' . $quoteMarks . '),';
+        }
+        $insertScript = substr($insertScript , 0, -1);
+        $insertStatement = $this->getConnection()->prepare($insertScript);
+        $flatBatch = array_reduce($this->batch, function(array $carry, User $item) {
+            return array_merge($carry, [
+                $item->getId(),
+                $item->getFio(),
+                $item->getEmail(),
+                $item->getCurrency(),
+                $item->getSum()
+            ]);
+        }, []);
+        if (!$insertStatement->execute($flatBatch)) {
+            $error = $insertStatement->errorInfo();
+            throw new UserBatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
+        }
+        $this->getConnection()->commit();
+    }
+
+    public function openUserInsertStatement()
+    {
+        $this->getConnection()->beginTransaction();
+        $this->insertBatchStatement = $this->getConnection()->prepare(<<<SQL
+insert into users (id, fio, email, currency, sum) values (?, ?, ?, ?, ?)
+SQL
+        );
+    }
+
+    public function executeUserInsertStatement(User $user)
+    {
+        if (!$this->insertBatchStatement->execute([
+            $user->getId(),
+            $user->getFio(),
+            $user->getEmail(),
+            $user->getCurrency(),
+            $user->getSum()
+        ])) {
+            $error = $this->insertBatchStatement->errorInfo();
+            throw new UserBatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
+        };
+    }
+
+    public function commit()
     {
         $this->getConnection()->commit();
     }
