@@ -6,7 +6,7 @@ namespace App\Model;
 
 use App\Entity\User;
 use App\Exception\UserBatchInsertException;
-use App\Parser\CsvFileParser;
+use App\Parser\FileParserInterface;
 use App\Repository\UserRepository;
 use App\Util\ErrorBagTrait;
 
@@ -15,15 +15,15 @@ class UserLoadingModel
     use ErrorBagTrait;
 
     private UserRepository $userRepository;
-    private CsvFileParser $parser;
+    private FileParserInterface $parser;
     private int $batchSize = 1000;
 
     /**
      * UserLoadingModel constructor.
      * @param UserRepository $repository
-     * @param CsvFileParser $csvFileParser
+     * @param FileParserInterface $csvFileParser
      */
-    public function __construct(UserRepository $repository, CsvFileParser $csvFileParser)
+    public function __construct(UserRepository $repository, FileParserInterface $csvFileParser)
     {
         $this->userRepository = $repository;
         $this->parser = $csvFileParser;

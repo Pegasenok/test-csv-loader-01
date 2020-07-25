@@ -38,11 +38,6 @@ class RedisCommandDeployer implements CommandDeployerInterface
         return $commandId;
     }
 
-    public function getOneCommand(): CommandInterface
-    {
-        // TODO: Implement getOneCommand() method.
-    }
-
     /**
      * @return string
      */

@@ -9,7 +9,7 @@ use App\Dto\EntityHolder;
 use App\Exception\UserFieldSetException;
 use App\Util\ErrorBagTrait;
 
-class CsvFileParser
+class CsvFileParser implements FileParserInterface
 {
     use ErrorBagTrait;
     private array $errors = [];

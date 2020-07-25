@@ -14,12 +14,6 @@ interface CommandDeployerInterface
     public function deployCommand(CommandInterface $command): CommandId;
 
     /**
-     * @return CommandInterface
-     * @throws EmptyCommandPoolException
-     */
-    public function getOneCommand(): CommandInterface;
-
-    /**
      * @return string
      */
     public function getQueueName(): string;
