@@ -7,7 +7,7 @@ namespace App\Model;
 use App\Exception\NotFoundException;
 use App\Repository\UserRepository;
 
-class SearchModel
+class SearchModel implements UserSearchModelInterface
 {
     /**
      * @var UserRepository

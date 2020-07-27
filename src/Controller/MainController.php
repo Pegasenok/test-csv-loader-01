@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Cache\RedisCache;
 use App\Command\RedisCommandDeployer;
 use App\Database\DatabaseStorage;
 use App\Dto\CsvFileRequesetDto;
 use App\Dto\CsvFileResponseDto;
 use App\Exception\NotFoundException;
 use App\Form\UploadFormBuilder;
+use App\Model\CachedSearchModel;
 use App\Model\SearchFormModel;
 use App\Model\SearchModel;
 use App\Model\UploadActionModel;
@@ -74,7 +76,12 @@ class MainController
                 new DatabaseStorage($_ENV['DATABASE_URL'])
             )
         );
-        return $searchModel->findByFioOrEmail($query);
+        $redis = new \Redis();
+        // todo inline redis initialization
+        $redis->connect('redis');
+        $redis->auth($_ENV['REDIS_PASS']);
+        $cachedModel = new CachedSearchModel($searchModel, new RedisCache($redis));
+        return $cachedModel->findByFioOrEmail($query);
     }
 
     /**

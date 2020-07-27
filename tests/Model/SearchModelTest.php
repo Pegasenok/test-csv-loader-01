@@ -3,9 +3,11 @@
 namespace Model;
 
 use App\Builder\UserBuilder;
+use App\Cache\RedisCache;
 use App\Database\DatabaseStorage;
 use App\Exception\NotFoundException;
 use App\Model\BatchLoadingModel;
+use App\Model\CachedSearchModel;
 use App\Model\SearchModel;
 use App\Model\UserLoadingModel;
 use App\Parser\CsvFileParser;
@@ -16,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 class SearchModelTest extends TestCase
 {
     const TEST_FILE_PATH = "/tmp/test_04.csv";
+    const TEST_DB_INDEX = 11;
     /**
      * @var DatabaseStorage
      */
@@ -63,6 +66,36 @@ CSV
         $this->assertIsString($model->findByFioOrEmail('  '));
         $this->assertIsString($model->findByFioOrEmail('asdf@dsaf.cv'));
 
+    }
+
+    public function testFindByFioOrEmailCached()
+    {
+        $redis = new \Redis();
+        // todo inline redis initialization
+        $redis->connect('redis');
+        $redis->auth($_ENV['REDIS_PASS']);
+        $redis->select(self::TEST_DB_INDEX);
+
+        $model = $this->createMock(SearchModel::class);
+
+        $model->expects($this->exactly(2))->method('findByFioOrEmail')->willReturn('value');
+
+        $cachedModel = new CachedSearchModel($model, new RedisCache($redis));
+
+        try {
+            $teskKey = 'kkklasdrf';
+            $cachedModel->findByFioOrEmail($teskKey);
+            $cachedModel->findByFioOrEmail($teskKey);
+            $cachedModel->invalidateKey($teskKey);
+            $result = $cachedModel->findByFioOrEmail($teskKey);
+            $this->assertEquals('value', $result);
+            $result = $cachedModel->findByFioOrEmail($teskKey);
+            $this->assertEquals('value', $result);
+        } catch (NotFoundException $e) {
+            $this->fail('query not found!');
+        }
+
+        $redis->flushDB();
     }
 
     /**
