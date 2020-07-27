@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 
 namespace App\Repository;
@@ -8,6 +8,7 @@ use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
 use App\Entity\User;
 use App\Exception\UserBatchInsertException;
+use PDO;
 
 class UserRepository
 {
@@ -25,6 +26,42 @@ class UserRepository
     public function __construct(DatabaseStorage $storage)
     {
         $this->storage = $storage;
+    }
+
+    /**
+     * @param string $query
+     * @param int $limit
+     * @return array
+     */
+    public function findByFio(string $query, int $limit = 10)
+    {
+        $statement = $this->getConnection()->prepare(<<<SQL
+select id, fio, email, currency, sum from users where fio like ? LIMIT $limit
+SQL
+        );
+        $statement->execute([$query . '%']);
+        if ($statement->rowCount()) {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return [];
+    }
+
+    /**
+     * @param string $query
+     * @param int $limit
+     * @return array
+     */
+    public function findByEmail(string $query, int $limit = 10)
+    {
+        $statement = $this->getConnection()->prepare(<<<SQL
+select id, fio, email, currency, sum from users where email like ? LIMIT $limit
+SQL
+        );
+        $statement->execute([$query]);
+        if ($statement->rowCount()) {
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return [];
     }
 
     public function openUserInsertBatch()

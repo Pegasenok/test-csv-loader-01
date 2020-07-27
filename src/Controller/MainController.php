@@ -3,11 +3,16 @@
 namespace App\Controller;
 
 use App\Command\RedisCommandDeployer;
+use App\Database\DatabaseStorage;
 use App\Dto\CsvFileRequesetDto;
 use App\Dto\CsvFileResponseDto;
+use App\Exception\NotFoundException;
 use App\Form\UploadFormBuilder;
+use App\Model\SearchFormModel;
+use App\Model\SearchModel;
 use App\Model\UploadActionModel;
 use App\Model\UploadFormModel;
+use App\Repository\UserRepository;
 
 class MainController
 {
@@ -21,7 +26,8 @@ class MainController
     public function index()
     {
         $model = new UploadFormModel(new UploadFormBuilder());
-        return $model->getUploadFormHtml();
+        $searchModel = new SearchFormModel();
+        return $model->getUploadFormHtml() . $searchModel->getSearchHtml();
     }
 
     /**
@@ -54,10 +60,28 @@ class MainController
     }
 
     /**
+     * @return string|void
+     * @throws NotFoundException
+     */
+    public function search()
+    {
+        $query = $_GET['q'] ?? false;
+        if (!$query) {
+            throw new NotFoundException();
+        }
+        $searchModel = new SearchModel(
+            new UserRepository(
+                new DatabaseStorage($_ENV['DATABASE_URL'])
+            )
+        );
+        return $searchModel->findByFioOrEmail($query);
+    }
+
+    /**
      * @param CsvFileResponseDto $dto
      * @return CsvFileResponseDto|string
      */
-    public function chooseReturn(CsvFileResponseDto $dto)
+    private function chooseReturn(CsvFileResponseDto $dto)
     {
         $explode = explode(',', $_SERVER['HTTP_ACCEPT']);
         if (in_array('text/html', $explode)) {

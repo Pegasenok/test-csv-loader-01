@@ -21,7 +21,12 @@ $controller = $router->findController();
 /**
  * @see MainController
  */
-$response = call_user_func($controller);
+try {
+    $response = call_user_func($controller);
+} catch (\App\Exception\NotFoundException $e) {
+    echo "Not found.";
+    http_response_code(404);
+}
 
 if ($response instanceof JsonSerializable) {
     if (ob_get_length() == 0) {

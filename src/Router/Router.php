@@ -13,6 +13,7 @@ class Router
         '' => [MainController::class, 'index'], /** @see MainController::index() */
         'upload' => [MainController::class, 'upload'], /** @see MainController::upload() */
         'status' => [MainController::class, 'status'], /** @see MainController::status() */
+        'search' => [MainController::class, 'search'], /** @see MainController::search() */
     ];
 
     /**
