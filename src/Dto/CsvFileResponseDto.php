@@ -32,27 +32,11 @@ class CsvFileResponseDto implements \JsonSerializable
     }
 
     /**
-     * @param bool $status
-     */
-    public function setStatus(bool $status): void
-    {
-        $this->status = $status;
-    }
-
-    /**
      * @return string|null
      */
     public function getWaitId(): ?string
     {
         return $this->waitId;
-    }
-
-    /**
-     * @param string|null $waitId
-     */
-    public function setWaitId(?string $waitId): void
-    {
-        $this->waitId = $waitId;
     }
 
     public function jsonSerialize()

@@ -20,6 +20,7 @@ class RedisCommandDeployerTest extends TestCase
     {
         $configuration = require getcwd().'/config/testConfiguration.php';
         $this->redis = $configuration['redis'];
+        $this->redis->flushDB();
     }
 
     public function tearDown(): void

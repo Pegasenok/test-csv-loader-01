@@ -37,7 +37,7 @@ class UploadCsvCommand implements CommandInterface
             $file = new \SplFileObject($path);
             $this->executionModel->uploadFile($file);
             if (count($this->executionModel->getErrors())) {
-                var_dump($this->executionModel->getErrors());
+                $this->payload['errors'] = $this->executionModel->getErrors();
             }
             unlink($file->getRealPath());
         }

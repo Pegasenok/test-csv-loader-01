@@ -2,6 +2,7 @@
 
 use App\Command\RedisCommandDeployer;
 use App\Database\DatabaseStorage;
+use App\Model\FileConductor\FileConductor;
 use App\Model\SearchModel;
 use App\Model\UploadActionModel;
 use App\Repository\UserRepository;
@@ -27,7 +28,7 @@ $config['SearchModel'] = (function () use ($config) {
     );
 })();
 $config['UploadActionModel'] = (function () use ($config) {
-    return new UploadActionModel(new RedisCommandDeployer($config['redis']));
+    return new UploadActionModel(new RedisCommandDeployer($config['redis']), new FileConductor());
 })();
 
 return $config;

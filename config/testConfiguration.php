@@ -1,10 +1,16 @@
 <?php
 
+use App\Builder\UserBuilder;
 use App\Command\RedisCommandDeployer;
 use App\Database\DatabaseStorage;
+use App\Model\BatchLoadingModel;
+use App\Model\FileConductor\UnsecuredFileConductor;
 use App\Model\SearchModel;
 use App\Model\UploadActionModel;
+use App\Model\UserLoadingModel;
+use App\Parser\CsvFileParser;
 use App\Repository\UserRepository;
+use App\Validation\UserValidation;
 
 $config = [];
 $config['redis'] = (function () {
@@ -28,7 +34,19 @@ $config['SearchModel'] = (function () use ($config) {
     );
 })();
 $config['UploadActionModel'] = (function () use ($config) {
-    return new UploadActionModel(new RedisCommandDeployer($config['redis']));
+    return new UploadActionModel(new RedisCommandDeployer($config['redis']), new UnsecuredFileConductor());
+})();
+$config['UserLoadingModel'] = (function () use ($config): UserLoadingModel {
+    return new UserLoadingModel(
+        new CsvFileParser(
+            new UserBuilder(
+                new UserValidation()
+            )
+        ),
+        new BatchLoadingModel(
+            new UserRepository($config['database'])
+        )
+    );
 })();
 
 return $config;

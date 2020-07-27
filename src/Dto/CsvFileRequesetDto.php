@@ -4,6 +4,8 @@
 namespace App\Dto;
 
 
+use App\Exception\BadFileException;
+
 class CsvFileRequesetDto
 {
     private array $files;
@@ -16,14 +18,11 @@ class CsvFileRequesetDto
     public function __construct($files)
     {
         if (empty($files)) {
-            throw new \Exception('no file, try again', 400);
+            throw new BadFileException('no file, try again', 400);
         }
         foreach ($files as $file) {
-            if (!$file['name']) {
-                throw new \Exception('no file, try again', 400);
-            }
             if ($file['error']) {
-                throw new \Exception('bad file given');
+                throw new BadFileException('bad file given');
             }
             $this->files[$file['name']] = new \SplFileObject($file['tmp_name']);
         }
@@ -35,14 +34,6 @@ class CsvFileRequesetDto
     public function getFiles(): array
     {
         return $this->files;
-    }
-
-    /**
-     * @param array $files
-     */
-    public function setFiles(array $files): void
-    {
-        $this->files = $files;
     }
 
 }

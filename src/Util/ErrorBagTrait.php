@@ -21,7 +21,7 @@ trait ErrorBagTrait
      */
     protected function addErrors(array $errors)
     {
-        array_merge($this->errors, $errors);
+        $this->errors = array_merge($this->errors, $errors);
     }
 
     /**

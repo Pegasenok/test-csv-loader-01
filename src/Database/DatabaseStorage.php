@@ -24,12 +24,4 @@ class DatabaseStorage
     {
         return $this->connection;
     }
-
-    /**
-     * @param \PDO $connection
-     */
-    public function setConnection(\PDO $connection): void
-    {
-        $this->connection = $connection;
-    }
 }
