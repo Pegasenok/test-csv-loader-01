@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
+use App\Model\BatchLoadingModel;
 use App\Model\UserLoadingModel;
 use App\Parser\CsvFileParser;
 use App\Repository\UserRepository;
@@ -17,8 +18,7 @@ class CommandRegistry
     {
         if ($array['name'] == UploadCsvCommand::UPLOAD_CSV_COMMAND_NAME) {
             $model = new UserLoadingModel(
-                new UserRepository(new DatabaseStorage($_ENV['DATABASE_URL'])),
-                new CsvFileParser(new UserBuilder(new UserValidation()))
+                new CsvFileParser(new UserBuilder(new UserValidation())), new BatchLoadingModel(new UserRepository(new DatabaseStorage($_ENV['DATABASE_URL'])))
             );
             $command = new UploadCsvCommand($model);
             $command->setCommandId(new CommandId($array['id']));

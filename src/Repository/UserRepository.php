@@ -6,11 +6,12 @@ namespace App\Repository;
 
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
+use App\Entity\EntityInterface;
 use App\Entity\User;
-use App\Exception\UserBatchInsertException;
+use App\Exception\BatchInsertException;
 use PDO;
 
-class UserRepository
+class UserRepository implements RepositoryInterface
 {
     private DatabaseStorage $storage;
     private array $batch;
@@ -87,21 +88,21 @@ SQL
     }
 
     /**
-     * @throws UserBatchInsertException
+     * @param array|EntityInterface[] $batch
+     * @throws BatchInsertException
      */
-    public function commitBatch()
+    public function insertBatch(array $batch)
     {
         $insertScript = <<<SQL
 insert into users (id, fio, email, currency, sum) values 
-SQL
-        ;
-        for ($i = 0; $i < count($this->batch); $i++) {
+SQL;
+        for ($i = 0; $i < count($batch); $i++) {
             $quoteMarks = implode(',', str_split(str_repeat('?', UserBuilder::EXPECTED_FIELD_COUNT)));
             $insertScript .= '(' . $quoteMarks . '),';
         }
-        $insertScript = substr($insertScript , 0, -1);
+        $insertScript = substr($insertScript, 0, -1);
         $insertStatement = $this->getConnection()->prepare($insertScript);
-        $flatBatch = array_reduce($this->batch, function(array $carry, User $item) {
+        $flatBatch = array_reduce($batch, function (array $carry, User $item) {
             return array_merge($carry, [
                 $item->getId(),
                 $item->getFio(),
@@ -112,9 +113,8 @@ SQL
         }, []);
         if (!$insertStatement->execute($flatBatch)) {
             $error = $insertStatement->errorInfo();
-            throw new UserBatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
+            throw new BatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
         }
-        $this->getConnection()->commit();
     }
 
     public function openUserInsertStatement()
@@ -136,7 +136,7 @@ SQL
             $user->getSum()
         ])) {
             $error = $this->insertBatchStatement->errorInfo();
-            throw new UserBatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
+            throw new BatchInsertException(sprintf("[%s]%s %s", $error[0], $error[1], $error[2]));
         };
     }
 

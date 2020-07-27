@@ -4,29 +4,30 @@
 namespace App\Model;
 
 
-use App\Entity\User;
-use App\Exception\UserBatchInsertException;
 use App\Parser\FileParserInterface;
-use App\Repository\UserRepository;
 use App\Util\ErrorBagTrait;
+use App\Util\ErrorsAwareInterface;
 
-class UserLoadingModel
+class UserLoadingModel implements ErrorsAwareInterface
 {
     use ErrorBagTrait;
 
-    private UserRepository $userRepository;
     private FileParserInterface $parser;
+    private BatchLoadingInterface $batchLoadingModel;
     private int $batchSize = 1000;
 
     /**
      * UserLoadingModel constructor.
-     * @param UserRepository $repository
      * @param FileParserInterface $csvFileParser
+     * @param BatchLoadingInterface $batchLoadingModel
      */
-    public function __construct(UserRepository $repository, FileParserInterface $csvFileParser)
+    public function __construct(
+        FileParserInterface $csvFileParser,
+        BatchLoadingInterface $batchLoadingModel
+    )
     {
-        $this->userRepository = $repository;
         $this->parser = $csvFileParser;
+        $this->batchLoadingModel = $batchLoadingModel;
     }
 
     /**
@@ -34,64 +35,15 @@ class UserLoadingModel
      */
     public function uploadFile(\SplFileObject $file)
     {
-        $this->userRepository->openUserInsertBatch();
-        $i = 0;
-        foreach ($this->parser->streamParseFile($file) as $entityHolder) {
-            try {
-                $user = $entityHolder->getEntity();
-                if (!$user instanceof User) {
-                    throw new UserBatchInsertException('Bad user.');
-                }
-                $this->userRepository->addToBatch($user);
-
-                if (++$i >= $this->batchSize) {
-                    $i = 0;
-                    $this->userRepository->commitBatch();
-                    $this->userRepository->openUserInsertBatch();
-                }
-            } catch (UserBatchInsertException $e) {
-                $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
-            }
+        $this->batchLoadingModel->batchLoadStream(
+            $this->parser->streamParseFile($file)
+        );
+        if ($this->parser instanceof ErrorsAwareInterface) {
+            $this->addErrors($this->parser->getErrors());
         }
-        try {
-            $this->userRepository->commitBatch();
-        } catch (UserBatchInsertException $e) {
-            $this->addError("Last line - {$e->getMessage()}");
+        if ($this->batchLoadingModel instanceof ErrorsAwareInterface) {
+            $this->addErrors($this->batchLoadingModel->getErrors());
         }
-//        var_dump($this->parser->getErrors());
-    }
-
-    /**
-     * @todo strategy
-     * @param \SplFileObject $file
-     */
-    public function uploadFile2(\SplFileObject $file)
-    {
-        $this->userRepository->openUserInsertStatement();
-        $i = 0;
-        foreach ($this->parser->streamParseFile($file) as $entityHolder) {
-            try {
-                $user = $entityHolder->getEntity();
-                if (!$user instanceof User) {
-                    throw new UserBatchInsertException('Bad user.');
-                }
-                $this->userRepository->executeUserInsertStatement($user);
-
-                if (++$i >= $this->batchSize) {
-                    $this->userRepository->commit();
-                    $this->userRepository->openUserInsertStatement();
-                    $i = 0;
-                }
-            } catch (UserBatchInsertException $e) {
-                $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
-            }
-        }
-        try {
-            $this->userRepository->commit();
-        } catch (UserBatchInsertException $e) {
-            $this->addError("Last line - {$e->getMessage()}");
-        }
-//        var_dump($this->parser->getErrors());
     }
 
     /**

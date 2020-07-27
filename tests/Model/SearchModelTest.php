@@ -5,6 +5,7 @@ namespace Model;
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
 use App\Exception\NotFoundException;
+use App\Model\BatchLoadingModel;
 use App\Model\SearchModel;
 use App\Model\UserLoadingModel;
 use App\Parser\CsvFileParser;
@@ -34,8 +35,8 @@ class SearchModelTest extends TestCase
 CSV
         );
         $model = new UserLoadingModel(
-            new UserRepository($this->storage),
-            new CsvFileParser(new UserBuilder(new UserValidation()))
+            new CsvFileParser(new UserBuilder(new UserValidation())),
+            new BatchLoadingModel(new UserRepository($this->storage))
         );
         $model->uploadFile(new \SplFileObject(self::TEST_FILE_PATH));
     }
