@@ -27,6 +27,6 @@ class CommandRegistry
             return $command;
         }
 
-        throw new \Exception(sprintf("Command %s not found.", $array['name']??'-'));
+        throw new \Exception(sprintf("Command %s not found.", $array['name'] ?? '-'));
     }
 }

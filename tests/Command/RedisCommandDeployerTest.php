@@ -2,6 +2,7 @@
 
 namespace Command;
 
+use App\Command\CommandPoolException;
 use App\Command\CommandRegistry;
 use App\Command\RedisCommandDeployer;
 use App\Command\UploadCsvCommand;
@@ -17,7 +18,7 @@ class RedisCommandDeployerTest extends TestCase
 
     public function setUp (): void
     {
-        $configuration = require_once getcwd().'/config/testConfiguration.php';
+        $configuration = require getcwd().'/config/testConfiguration.php';
         $this->redis = $configuration['redis'];
     }
 
@@ -49,5 +50,22 @@ class RedisCommandDeployerTest extends TestCase
         $this->assertEquals(self::TEST_FILE_PATH, $decodedCommand['payload']['files'][self::TEST_FILE_NAME] ?? false);
         $this->assertNotFalse($this->redis->get($decodedCommand['id']));
         $this->assertCount(2, $this->redis->keys('*'));
+    }
+
+    public function testDeployCommandException()
+    {
+        $redis = $this->createMock(\Redis::class);
+        $redis->method('exec')->willReturn([false, true]);
+        $this->expectException(CommandPoolException::class);
+        $deployer = new RedisCommandDeployer($redis);
+        $command = (new CommandRegistry())->getCommandFromArray(
+            [
+                'id' => 'testId',
+                'name' => UploadCsvCommand::UPLOAD_CSV_COMMAND_NAME,
+                'payload' => ['files' => [self::TEST_FILE_NAME => self::TEST_FILE_PATH]]
+            ]
+        );
+        file_put_contents(self::TEST_FILE_PATH, 'a,b,c');
+        $deployer->deployCommand($command);
     }
 }
