@@ -2,22 +2,21 @@
 
 namespace App\Controller;
 
-use App\Cache\RedisCache;
-use App\Command\RedisCommandDeployer;
-use App\Database\DatabaseStorage;
 use App\Dto\CsvFileRequesetDto;
 use App\Dto\CsvFileResponseDto;
 use App\Exception\NotFoundException;
 use App\Form\UploadFormBuilder;
 use App\Model\CachedSearchModel;
 use App\Model\SearchFormModel;
-use App\Model\SearchModel;
 use App\Model\UploadActionModel;
 use App\Model\UploadFormModel;
-use App\Repository\UserRepository;
+use App\Util\ConfigurationAwareTrait;
+use Redis;
 
 class MainController
 {
+    use ConfigurationAwareTrait;
+
     const UPLOAD_URL = 'upload';
     const WAIT_STATUS_URL = 'status';
 
@@ -39,23 +38,16 @@ class MainController
     public function upload()
     {
         $dto = new CsvFileRequesetDto($_FILES);
-
-        // todo inline redis initialization
-        $redis = new \Redis();
-        $redis->connect('redis');
-        $redis->auth($_ENV['REDIS_PASS']);
-
-        $model = new UploadActionModel(new RedisCommandDeployer($redis));
+        /** @var UploadActionModel $model */
+        $model = $this->get('UploadActionModel');
         $dto = $model->upload($dto);
         return $this->chooseReturn($dto);
     }
 
     public function status()
     {
-        // todo inline redis
-        $redis = new \Redis();
-        $redis->connect('redis');
-        $redis->auth($_ENV['REDIS_PASS']);
+        /** @var Redis $redis */
+        $redis = $this->get('redis');
         return json_encode([
             'status' => $redis->get($_GET['waitId'])
         ]);
@@ -71,16 +63,7 @@ class MainController
         if (!$query) {
             throw new NotFoundException();
         }
-        $searchModel = new SearchModel(
-            new UserRepository(
-                new DatabaseStorage($_ENV['DATABASE_URL'])
-            )
-        );
-        $redis = new \Redis();
-        // todo inline redis initialization
-        $redis->connect('redis');
-        $redis->auth($_ENV['REDIS_PASS']);
-        $cachedModel = new CachedSearchModel($searchModel, new RedisCache($redis));
+        $cachedModel = new CachedSearchModel($this->get('SearchModel'), $this->get('cache'));
         return $cachedModel->findByFioOrEmail($query);
     }
 

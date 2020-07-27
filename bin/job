@@ -8,10 +8,7 @@ require dirname(__DIR__).'/vendor/autoload.php';
 
 set_time_limit(0);
 
-// todo inline redis initialization
-$redis = new \Redis();
-$redis->connect('redis');
-$redis->auth($_ENV['REDIS_PASS']);
+$configuration = require_once getcwd() . '/config/devConfiguration.php';
 
-$listener = new RedisCommandListener($redis, new CommandRegistry());
+$listener = new RedisCommandListener($configuration['redis'], new CommandRegistry());
 $listener->listen();

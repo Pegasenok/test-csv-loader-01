@@ -17,11 +17,8 @@ class RedisCommandDeployerTest extends TestCase
 
     public function setUp (): void
     {
-        $this->redis = new \Redis();
-        // todo inline redis initialization
-        $this->redis->connect('redis');
-        $this->redis->auth($_ENV['REDIS_PASS']);
-        $this->redis->select(self::TEST_DB_INDEX);
+        $configuration = require_once getcwd().'/config/testConfiguration.php';
+        $this->redis = $configuration['redis'];
     }
 
     public function tearDown(): void

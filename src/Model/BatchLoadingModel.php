@@ -101,6 +101,7 @@ class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
                 }
             } catch (BatchInsertException $e) {
                 $this->repository->getConnection()->rollback();
+                $this->repository->getConnection()->beginTransaction();
                 $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
         }
@@ -110,6 +111,7 @@ class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
                 $this->emptyBatch();
                 $this->repository->getConnection()->commit();
             } catch (BatchInsertException $e) {
+                $this->repository->getConnection()->rollback();
                 $this->addError("Last batch - {$e->getMessage()}");
             }
         }

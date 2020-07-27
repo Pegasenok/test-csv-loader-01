@@ -13,6 +13,7 @@ set_exception_handler(function (Throwable $exception) {
 });
 
 $main = new MainController();
+$main->setConfiguration(require_once getcwd() . '/../config/devConfiguration.php');
 $controllers[MainController::class] = $main;
 
 $router = new Router($controllers);
