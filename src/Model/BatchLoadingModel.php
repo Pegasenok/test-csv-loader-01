@@ -10,7 +10,6 @@ use App\Exception\BatchInsertException;
 use App\Repository\RepositoryInterface;
 use App\Util\ErrorBagTrait;
 use App\Util\ErrorsAwareInterface;
-use Traversable;
 
 class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
 {
@@ -54,9 +53,9 @@ class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
     }
 
     /**
-     * @param Traversable|EntityHolder[] $entitiesWalker
+     * @param iterable|EntityHolder[] $entitiesWalker
      */
-    public function batchLoadStream(Traversable $entitiesWalker)
+    public function batchLoadStream(iterable $entitiesWalker)
     {
         $i = 0;
         $this->getRepository()->getConnection()->beginTransaction();

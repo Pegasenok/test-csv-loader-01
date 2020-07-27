@@ -11,6 +11,7 @@ use App\Model\BatchLoadingModel;
 use App\Model\SlowBatchLoadingModel;
 use App\Parser\CsvFileParser;
 use App\Model\UserLoadingModel;
+use App\Parser\FileParserInterface;
 use App\Repository\UserRepository;
 use App\Validation\UserValidation;
 use PHPUnit\Framework\TestCase;
@@ -92,10 +93,10 @@ class UserLoadingModelTest extends TestCase
 
     public function testUploadEntityException()
     {
-        $csvFileParser = $this->createMock(CsvFileParser::class);
+        $csvFileParser = $this->createMock(FileParserInterface::class);
         $csvFileParser
             ->method('streamParseFile')
-            ->willReturn(new \ArrayIterator(array_fill(0, 3, new EntityHolder($this->getEmptyBrokenUser(), 1))));
+            ->willReturn($this->getStreamOfEmptyUsers());
         $model = new UserLoadingModel(
             $csvFileParser,
             $this->getLoadingModelStrategy(1)
@@ -149,5 +150,13 @@ CSV
         $user->setCurrency('aaaa');
         $user->setSum(0);
         return $user;
+    }
+
+    /**
+     * @return \ArrayIterator
+     */
+    private function getStreamOfEmptyUsers(): \ArrayIterator
+    {
+        return new \ArrayIterator(array_fill(0, 3, new EntityHolder($this->getEmptyBrokenUser(), 1)));
     }
 }
