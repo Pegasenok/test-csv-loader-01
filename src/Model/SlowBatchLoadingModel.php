@@ -9,7 +9,7 @@ use App\Exception\BatchInsertException;
 use App\Repository\RepositoryInterface;
 use App\Util\ErrorBagTrait;
 use App\Util\ErrorsAwareInterface;
-use Generator;
+use Traversable;
 
 class SlowBatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
 {
@@ -46,7 +46,7 @@ class SlowBatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterfa
     /**
      * @inheritDoc
      */
-    public function batchLoadStream(Generator $entitiesWalker)
+    public function batchLoadStream(Traversable $entitiesWalker)
     {
         $this->getRepository()->openUserInsertStatement();
         $i = 0;
@@ -72,5 +72,10 @@ class SlowBatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterfa
         } catch (BatchInsertException $e) {
             $this->addError("Last line - {$e->getMessage()}");
         }
+    }
+
+    public function setBatchSize(int $batchSize): void
+    {
+        $this->batchSize = $batchSize;
     }
 }

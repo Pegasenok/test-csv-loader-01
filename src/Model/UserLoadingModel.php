@@ -47,19 +47,11 @@ class UserLoadingModel implements ErrorsAwareInterface
     }
 
     /**
-     * @return int
-     */
-    public function getBatchSize(): int
-    {
-        return $this->batchSize;
-    }
-
-    /**
      * @param int $batchSize
      */
     public function setBatchSize(int $batchSize): void
     {
-        $this->batchSize = $batchSize;
+        $this->batchLoadingModel->setBatchSize($batchSize);
     }
 
 }

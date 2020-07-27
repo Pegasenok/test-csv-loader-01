@@ -3,12 +3,13 @@
 namespace App\Parser;
 
 use App\Dto\EntityHolder;
+use Traversable;
 
 interface FileParserInterface
 {
     /**
      * @param \SplFileObject $file
-     * @return \Generator|EntityHolder[]
+     * @return Traversable|EntityHolder[]
      */
-    public function streamParseFile(\SplFileObject $file): \Generator;
+    public function streamParseFile(\SplFileObject $file): Traversable;
 }

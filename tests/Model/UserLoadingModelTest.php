@@ -4,6 +4,8 @@ namespace Model;
 
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
+use App\Dto\EntityHolder;
+use App\Entity\User;
 use App\Fixture\CsvFileFixture;
 use App\Model\BatchLoadingModel;
 use App\Model\SlowBatchLoadingModel;
@@ -46,7 +48,7 @@ class UserLoadingModelTest extends TestCase
      * @param int $batch
      * @param int $loadingStrategy
      */
-    public function testUploadBigFile(int $rows, int $batch, int $loadingStrategy = 1)
+    public function testUploadBigFileBenchmark(int $rows, int $batch, int $loadingStrategy = 1)
     {
         $this->storage->getConnection()->exec('delete from users');
         $generator = new CsvFileFixture();
@@ -61,6 +63,49 @@ class UserLoadingModelTest extends TestCase
         $time = microtime(true) - $time;
         unlink(realpath(self::TEST_FILE_PATH));
         echo "$rows/$batch @ $loadingStrategy time elapsed: $time\n";
+    }
+
+    /**
+     * @testWith [500, 193]
+     * [500, 50]
+     * @param int $rows
+     * @param int $batch
+     * @param int $loadingStrategy
+     */
+    public function testUploadBigFile(int $rows, int $batch, int $loadingStrategy = 1)
+    {
+        $this->storage->getConnection()->exec('delete from users');
+        $generator = new CsvFileFixture();
+        $generator->generate(self::TEST_FILE_PATH, $rows);
+        $model = new UserLoadingModel(
+            new CsvFileParser(new UserBuilder(new UserValidation())),
+            $this->getLoadingModelStrategy($loadingStrategy)
+        );
+        $model->setBatchSize($batch);
+        $model->uploadFile(new \SplFileObject(self::TEST_FILE_PATH));
+        unlink(realpath(self::TEST_FILE_PATH));
+        $this->assertEquals(
+            $rows,
+            $this->storage->getConnection()->query('select count(1) from users')->fetch(\PDO::FETCH_COLUMN)
+        );
+    }
+
+    public function testUploadEntityException()
+    {
+        $csvFileParser = $this->createMock(CsvFileParser::class);
+        $csvFileParser
+            ->method('streamParseFile')
+            ->willReturn(new \ArrayIterator(array_fill(0, 3, new EntityHolder($this->getEmptyBrokenUser(), 1))));
+        $model = new UserLoadingModel(
+            $csvFileParser,
+            $this->getLoadingModelStrategy(1)
+        );
+        $model->setBatchSize(2);
+        $model->uploadFile($this->getMockBuilder(\SplFileObject::class)->setConstructorArgs(['php://memory'])->getMock());
+        $this->assertContains('Line 1 - [22001]1406 Data too long for column \'currency\' at row 1', $model->getErrors());
+        $this->assertContains('Last batch - [22001]1406 Data too long for column \'currency\' at row 1', $model->getErrors());
+
+        $this->assertTrue(true);
     }
 
     public function testUploadFile()
@@ -90,5 +135,19 @@ CSV
     {
         $repository = new UserRepository($this->storage);
         return $loadingStrategy == 2 ? new SlowBatchLoadingModel($repository) : new BatchLoadingModel($repository);
+    }
+
+    /**
+     * @return User
+     */
+    private function getEmptyBrokenUser(): User
+    {
+        $user = new User();
+        $user->setId(-1);
+        $user->setFio('');
+        $user->setEmail('');
+        $user->setCurrency('aaaa');
+        $user->setSum(0);
+        return $user;
     }
 }

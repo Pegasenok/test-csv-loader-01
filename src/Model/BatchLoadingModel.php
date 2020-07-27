@@ -10,7 +10,7 @@ use App\Exception\BatchInsertException;
 use App\Repository\RepositoryInterface;
 use App\Util\ErrorBagTrait;
 use App\Util\ErrorsAwareInterface;
-use Generator;
+use Traversable;
 
 class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
 {
@@ -38,35 +38,11 @@ class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
     }
 
     /**
-     * @param RepositoryInterface $repository
-     */
-    public function setRepository(RepositoryInterface $repository): void
-    {
-        $this->repository = $repository;
-    }
-
-    /**
      * @return array
      */
     public function getBatch(): array
     {
         return $this->batch;
-    }
-
-    /**
-     * @param array $batch
-     */
-    public function setBatch(array $batch): void
-    {
-        $this->batch = $batch;
-    }
-
-    /**
-     * @return int
-     */
-    public function getBatchSize(): int
-    {
-        return $this->batchSize;
     }
 
     /**
@@ -78,19 +54,15 @@ class BatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterface
     }
 
     /**
-     * @param Generator|EntityHolder[] $entitiesWalker
+     * @param Traversable|EntityHolder[] $entitiesWalker
      */
-    public function batchLoadStream(Generator $entitiesWalker)
+    public function batchLoadStream(Traversable $entitiesWalker)
     {
         $i = 0;
         $this->getRepository()->getConnection()->beginTransaction();
         foreach ($entitiesWalker as $entityHolder) {
             try {
-                $entity = $entityHolder->getEntity();
-                if (!$entity instanceof EntityInterface) {
-                    throw new BatchInsertException('Bad entity.');
-                }
-                $this->addToBatch($entity);
+                $this->addToBatch($entityHolder->getEntity());
 
                 if (++$i >= $this->batchSize) {
                     $i = 0;

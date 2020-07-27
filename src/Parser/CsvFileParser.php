@@ -9,6 +9,7 @@ use App\Dto\EntityHolder;
 use App\Exception\UserFieldSetException;
 use App\Util\ErrorBagTrait;
 use App\Util\ErrorsAwareInterface;
+use Traversable;
 
 class CsvFileParser implements FileParserInterface, ErrorsAwareInterface
 {
@@ -28,9 +29,9 @@ class CsvFileParser implements FileParserInterface, ErrorsAwareInterface
 
     /**
      * @param \SplFileObject $file
-     * @return \Generator|EntityHolder[]
+     * @return Traversable
      */
-    public function streamParseFile(\SplFileObject $file): \Generator
+    public function streamParseFile(\SplFileObject $file): Traversable
     {
         while (!$file->eof()) {
             if (($csvArray = $file->fgetcsv()) && !(count($csvArray) == $this->entityBuilder->getExpectedFieldCount())) {

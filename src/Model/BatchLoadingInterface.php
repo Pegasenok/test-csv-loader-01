@@ -5,12 +5,17 @@ namespace App\Model;
 
 
 use App\Dto\EntityHolder;
-use Generator;
+use Traversable;
 
 interface BatchLoadingInterface
 {
     /**
-     * @param Generator|EntityHolder[] $entitiesWalker
+     * @param Traversable|EntityHolder[] $entitiesWalker
      */
-    public function batchLoadStream(Generator $entitiesWalker);
+    public function batchLoadStream(Traversable $entitiesWalker);
+
+    /**
+     * @param int $batchSize
+     */
+    public function setBatchSize(int $batchSize): void;
 }

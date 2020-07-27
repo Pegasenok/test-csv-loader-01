@@ -23,6 +23,14 @@ class EntityHolder
     }
 
     /**
+     * @return int
+     */
+    public function getRowId(): int
+    {
+        return $this->rowId;
+    }
+
+    /**
      * @return EntityInterface
      */
     public function getEntity(): EntityInterface
