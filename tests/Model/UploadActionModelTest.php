@@ -2,6 +2,7 @@
 
 namespace Model;
 
+use App\Command\RedisCommandDeployer;
 use App\Dto\CsvFileRequesetDto;
 use App\Dto\CsvFileResponseDto;
 use App\Model\UploadActionModel;
@@ -60,5 +61,53 @@ CSV
         $this->expectErrorMessage('bad file given');
         $dto = new CsvFileRequesetDto([['error' => 'new error']]);
         $this->model->upload($dto);
+    }
+
+    /**
+     * @throws \App\Exception\BadFileException
+     */
+    public function testUploadNotPostVerifiedException()
+    {
+        $model = $this->configuration['UploadActionModelSecured'];
+        $redis = $this->createMock(\Redis::class);
+        $redis->method('exec')->willReturn([false, true]);
+        $model->setCommandDeployer(new RedisCommandDeployer($redis));
+
+        file_put_contents(self::TEST_FILE_PATH, <<<CSV
+1, asdf asdf lkj,asdf@google.com,eeee,50
+2, asdf asdf lkj,asdf@google.com,eeee,
+3, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+4, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+5, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+CSV
+        );
+
+        $this->expectErrorMessage('Corrupted files. Please, try again.');
+        $dto = new CsvFileRequesetDto([['name' => 'test', 'tmp_name' => self::TEST_FILE_PATH, 'error' => null]]);
+        $model->upload($dto);
+    }
+
+    /**
+     * @throws \App\Exception\BadFileException
+     */
+    public function testUploadDeployFailureException()
+    {
+        $redis = $this->createMock(\Redis::class);
+        $redis->method('exec')->willReturn([false, true]);
+        $this->model->setCommandDeployer(new RedisCommandDeployer($redis));
+
+        file_put_contents(self::TEST_FILE_PATH, <<<CSV
+1, asdf asdf lkj,asdf@google.com,eeee,50
+2, asdf asdf lkj,asdf@google.com,eeee,
+3, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+4, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+5, asdf asdf lkj,asdf@dsaf.cv,uah,25.2
+CSV
+        );
+
+        $dto = new CsvFileRequesetDto([['name' => 'test', 'tmp_name' => self::TEST_FILE_PATH, 'error' => null]]);
+        $response = $this->model->upload($dto);
+        $this->assertInstanceOf(CsvFileResponseDto::class, $response);
+        $this->assertTrue($response->getStatus() == CsvFileResponseDto::FAILURE);
     }
 }

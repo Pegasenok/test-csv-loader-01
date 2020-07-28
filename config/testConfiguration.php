@@ -4,6 +4,7 @@ use App\Builder\UserBuilder;
 use App\Command\RedisCommandDeployer;
 use App\Database\DatabaseStorage;
 use App\Model\BatchLoadingModel;
+use App\Model\FileConductor\FileConductor;
 use App\Model\FileConductor\UnsecuredFileConductor;
 use App\Model\SearchModel;
 use App\Model\UploadActionModel;
@@ -35,6 +36,9 @@ $config['SearchModel'] = (function () use ($config) {
 })();
 $config['UploadActionModel'] = (function () use ($config) {
     return new UploadActionModel(new RedisCommandDeployer($config['redis']), new UnsecuredFileConductor());
+})();
+$config['UploadActionModelSecured'] = (function () use ($config) {
+    return new UploadActionModel(new RedisCommandDeployer($config['redis']), new FileConductor());
 })();
 $config['UserLoadingModel'] = (function () use ($config): UserLoadingModel {
     return new UserLoadingModel(

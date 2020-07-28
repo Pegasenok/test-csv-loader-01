@@ -34,6 +34,14 @@ class UploadActionModel
     }
 
     /**
+     * @param CommandDeployerInterface $commandDeployer
+     */
+    public function setCommandDeployer(CommandDeployerInterface $commandDeployer): void
+    {
+        $this->commandDeployer = $commandDeployer;
+    }
+
+    /**
      * @param CsvFileRequesetDto $requesetDto
      * @return CsvFileResponseDto
      * @throws BadFileException
