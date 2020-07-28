@@ -6,4 +6,8 @@ use App\Fixture\CsvFileFixture;
 require dirname(__DIR__).'/vendor/autoload.php';
 
 $fixtureGenerator = new CsvFileFixture();
-$fixtureGenerator->generate('/var/uploads/test_04.csv', 10000);
+$fixtureGenerator->generate('/var/uploads/extra_big.csv', 1000000);
+$fixtureGenerator->generate('/var/uploads/small.csv', 10000, 1000000);
+$fixtureGenerator->generate('/var/uploads/big.csv', 100000, 1010000);
+$fixtureGenerator->generate('/var/uploads/big2.csv', 100000, 1110000);
+

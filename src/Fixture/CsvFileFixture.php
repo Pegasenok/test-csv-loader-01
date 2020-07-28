@@ -8,8 +8,11 @@ class CsvFileFixture
 {
     private int $shift = 0;
 
-    public function generate(string $fileName, int $rowCount)
+    public function generate(string $fileName, int $rowCount, int $shift = null)
     {
+        if (!is_null($shift)) {
+            $this->setShift($shift);
+        }
         $file = fopen($fileName, 'w');
         for ($i = 1; $i <= $rowCount; $i++) {
             $id = $i + $this->getShift();
