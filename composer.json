@@ -16,7 +16,8 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.2"
+        "phpunit/phpunit": "^9.2",
+      "ext-posix": "*"
     },
     "authors": [
         {
