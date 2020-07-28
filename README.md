@@ -17,7 +17,7 @@
 > Валюта
 > Сумма
 
-docker-compose up
-docker-compose exec php-fpm sh -c "bin/migration"
-docker-compose exec php-fpm sh -c "vendor/bin/phpunit"
-docker-compose exec php-fpm sh -c "vendor/bin/phpunit --group benchmark"
+docker-compose up  
+docker-compose exec php-fpm sh -c "bin/migration"  
+docker-compose exec php-fpm sh -c "vendor/bin/phpunit"  
+docker-compose exec php-fpm sh -c "vendor/bin/phpunit --group benchmark"  
