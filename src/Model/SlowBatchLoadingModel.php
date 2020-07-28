@@ -35,14 +35,6 @@ class SlowBatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterfa
     }
 
     /**
-     * @param RepositoryInterface $repository
-     */
-    public function setRepository(RepositoryInterface $repository): void
-    {
-        $this->repository = $repository;
-    }
-
-    /**
      * @inheritDoc
      */
     public function batchLoadStream(iterable $entitiesWalker)
@@ -66,11 +58,7 @@ class SlowBatchLoadingModel implements BatchLoadingInterface, ErrorsAwareInterfa
                 $this->addError("Line {$entityHolder->getRowId()} - {$e->getMessage()}");
             }
         }
-        try {
-            $this->getRepository()->commit();
-        } catch (BatchInsertException $e) {
-            $this->addError("Last line - {$e->getMessage()}");
-        }
+        $this->getRepository()->commit();
     }
 
     public function setBatchSize(int $batchSize): void

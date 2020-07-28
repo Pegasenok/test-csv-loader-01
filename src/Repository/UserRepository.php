@@ -65,20 +65,6 @@ SQL
         return [];
     }
 
-    public function openUserInsertBatch()
-    {
-        $this->batch = [];
-        $this->getConnection()->beginTransaction();
-    }
-
-    /**
-     * @param User $user
-     */
-    public function addToBatch(User $user)
-    {
-        $this->batch[] = $user;
-    }
-
     /**
      * @return \PDO
      */

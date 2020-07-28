@@ -5,6 +5,7 @@ namespace Model;
 use App\Builder\UserBuilder;
 use App\Database\DatabaseStorage;
 use App\Dto\EntityHolder;
+use App\Entity\EntityInterface;
 use App\Entity\User;
 use App\Fixture\CsvFileFixture;
 use App\Model\BatchLoadingModel;
@@ -67,8 +68,10 @@ class UserLoadingModelTest extends TestCase
     }
 
     /**
-     * @testWith [500, 193]
-     * [500, 50]
+     * @testWith [500, 193, 1]
+     * [500, 50, 1]
+     * [500, 193, 2]
+     * [500, 50, 2]
      * @param int $rows
      * @param int $batch
      * @param int $loadingStrategy
@@ -91,7 +94,7 @@ class UserLoadingModelTest extends TestCase
         );
     }
 
-    public function testUploadEntityException()
+    public function testUploadEntityErrors()
     {
         $csvFileParser = $this->createMock(FileParserInterface::class);
         $csvFileParser
@@ -107,6 +110,34 @@ class UserLoadingModelTest extends TestCase
         $this->assertContains('Last batch - [22001]1406 Data too long for column \'currency\' at row 1', $model->getErrors());
 
         $this->assertTrue(true);
+    }
+
+    public function testUploadEntityErrorsSlowStrategy()
+    {
+        $csvFileParser = $this->createMock(FileParserInterface::class);
+        $csvFileParser
+            ->method('streamParseFile')
+            ->willReturn($this->getStreamOfEmptyUsers());
+        $model = new UserLoadingModel(
+            $csvFileParser,
+            $this->getLoadingModelStrategy(2)
+        );
+        $model->setBatchSize(2);
+        $model->uploadFile($this->getMockBuilder(\SplFileObject::class)->setConstructorArgs(['php://memory'])->getMock());
+        $this->assertContains('Line 1 - [22001]1406 Data too long for column \'currency\' at row 1', $model->getErrors());
+        $this->assertCount(3, $model->getErrors());
+
+        $csvFileParser = $this->createMock(FileParserInterface::class);
+        $csvFileParser
+            ->method('streamParseFile')
+            ->willReturn($this->getStreamOfNonUsers());
+        $model = new UserLoadingModel(
+            $csvFileParser,
+            $this->getLoadingModelStrategy(2)
+        );
+        $model->uploadFile($this->getMockBuilder(\SplFileObject::class)->setConstructorArgs(['php://memory'])->getMock());
+        $this->assertContains('Line 1 - Bad user.', $model->getErrors());
+        $this->assertCount(3, $model->getErrors());
     }
 
     public function testUploadFile()
@@ -153,10 +184,27 @@ CSV
     }
 
     /**
+     * @return EntityInterface
+     */
+    private function getNotUserEntity(): EntityInterface
+    {
+        $mock = $this->createMock(EntityInterface::class);
+        return $mock;
+    }
+
+    /**
      * @return \ArrayIterator
      */
     private function getStreamOfEmptyUsers(): \ArrayIterator
     {
         return new \ArrayIterator(array_fill(0, 3, new EntityHolder($this->getEmptyBrokenUser(), 1)));
+    }
+
+    /**
+     * @return \ArrayIterator
+     */
+    private function getStreamOfNonUsers(): \ArrayIterator
+    {
+        return new \ArrayIterator(array_fill(0, 3, new EntityHolder($this->getNotUserEntity(), 1)));
     }
 }

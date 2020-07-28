@@ -15,6 +15,8 @@
             <directory suffix=".php">src</directory>
             <exclude>
                 <directory suffix=".php">src/Migrations</directory>
+                <directory suffix=".php">src/Controller</directory>
+                <directory suffix=".php">src/Router</directory>
                 <file>src/Model/FileConductor/FileConductor.php</file> <!--Depends on getting files from POST-->
             </exclude>
         </whitelist>

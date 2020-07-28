@@ -4,6 +4,8 @@
 namespace App\Util;
 
 
+use App\Exception\BadLogicException;
+
 trait ConfigurationAwareTrait
 {
     private array $configuration;
@@ -19,9 +21,13 @@ trait ConfigurationAwareTrait
     /**
      * @param string $serviceName
      * @return mixed
+     * @throws BadLogicException
      */
     protected function get(string $serviceName)
     {
+        if (!isset($this->configuration[$serviceName])) {
+            throw new BadLogicException('Services misconfiguration.');
+        }
         return $this->configuration[$serviceName];
     }
 }
