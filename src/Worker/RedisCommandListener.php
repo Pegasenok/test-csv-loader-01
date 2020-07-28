@@ -40,14 +40,15 @@ class RedisCommandListener
                     if ($command->execute()) {
                         $this->redis->setex($commandId, RedisCommandDeployer::KEY_TTL, RedisCommandDeployer::COMPLETE_STATUS);
                         echo "command $commandId completed \n";
+                    } else {
+                        echo "command $commandId failed \n";
                     }
-                    echo "command $commandId failed \n";
                 } else {
                     echo "command $commandId already in work";
                 }
                 $this->redis->rPop($this->getWorkerProcessQueueName());
             } catch (\Exception $e) {
-                echo "Got exception: ".$e->getMessage() . "\n";
+                echo "Got exception: " . $e->getMessage() . "\n";
             }
         }
     }
