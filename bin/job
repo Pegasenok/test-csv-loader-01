@@ -2,11 +2,28 @@
 <?php
 
 use App\Command\CommandRegistry;
+use App\Database\DatabaseStorage;
 use App\Worker\RedisCommandListener;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 
 set_time_limit(0);
+
+$wait = 10;
+$connection = null;
+while ($wait && !$connection) {
+    try {
+        $connection = new DatabaseStorage($_ENV['DATABASE_URL']);
+    } catch (PDOException $exception) {
+        echo "Waiting for DB \n";
+        $wait--;
+        sleep(2);
+    }
+}
+if (is_null($connection)) {
+    exit('Database not accessible!');
+}
+$connection = null;
 
 $configuration = require_once getcwd() . '/config/devConfiguration.php';
 
